@@ -4,7 +4,7 @@ from numpy import sign
 import pygetwindow as gw
 from pynput import keyboard, mouse
 from PyQt5.QtCore import Qt, QTimer, QPoint
-from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QPen, QCursor
+from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QPen, QBrush, QColor, QCursor
 from PyQt5.QtWidgets import QApplication, QWidget
 import modes
 
@@ -17,6 +17,7 @@ wind = 0
 pos = (0, 0)
 leftButtonPos = (0, 0)
 leftButtonPressed = False
+altPressed = False
 mode = 0
 
 
@@ -28,7 +29,7 @@ class MyWindow(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateWindow)
-        self.timer.start(33)
+        self.timer.start(16)
         self.power, self.angle = 0, 0
 
     def updateWindow(self):
@@ -42,9 +43,12 @@ class MyWindow(QWidget):
         if leftButtonPressed:
             mousePos = self.mapFromGlobal(QCursor.pos())
             if mousePos.x() != leftButtonPos[0] and mousePos.y() != leftButtonPos[1]:
-                vecX, vecY = mousePos.x() - pos[0], mousePos.y() - pos[1]
-                self.power = min(100, round(100 * math.sqrt(vecX**2 + vecY**2) / (174 * self.width() / 1000)))
-                self.angle = round(-math.degrees(math.atan2(vecY, vecX)))
+                if altPressed:
+                    wind = max(0, min(200, (round((mousePos.x() - 100) * (200 / (self.width() - 200)))))) - 100
+                else:
+                    vecX, vecY = mousePos.x() - pos[0], mousePos.y() - pos[1]
+                    self.power = min(100, round(100 * math.sqrt(vecX**2 + vecY**2) / (174 * self.width() / 1000)))
+                    self.angle = round(-math.degrees(math.atan2(vecY, vecX)))
 
         self.update()
 
@@ -96,11 +100,20 @@ class MyWindow(QWidget):
 
         # 绘制自己位置
         painter.setPen(QPen(Qt.red, 2))
+        painter.setBrush(Qt.NoBrush)
         painter.drawEllipse(QPoint(pos[0], pos[1]), 10 * self.width() / 1000, 10 * self.width() / 1000)
 
         # 绘制运动轨迹
         for trail in MODES[mode]["trails"]:
             self.drawTrail(painter, **trail)
+
+        # 绘制风力控制条
+        painter.setPen(QPen(QColor(255, 255, 255, 128), 1))
+        painter.drawLine(100, 120, self.width() - 100, 120)
+        painter.setPen(QPen(Qt.white, 2))
+        painter.drawLine(int(self.width() / 2), 110, int(self.width() / 2), 130)
+        painter.setPen(QPen(Qt.yellow, 2))
+        painter.drawLine(int(100 + (self.width() - 200) * (wind + 100) / 200), 110, int(100 + (self.width() - 200) * (wind + 100) / 200), 130)
 
         # 绘制文本信息
         painter.setPen(QPen(Qt.white))
@@ -108,14 +121,14 @@ class MyWindow(QWidget):
         metrics = QFontMetrics(FONT)
         text = f"{self.power}, {sign(self.angle)*(90-abs(90-abs(self.angle)))}"
         painter.drawText(int(pos[0] - metrics.width(text) / 2), int(pos[1] + 40 * self.width() / 1000), text)
-        text = f"wind: {wind}"
-        painter.drawText(int(pos[0] - metrics.width(text) / 2), int(pos[1] + 40 * self.width() / 1000 + 15), text)
         text = f"mode: {MODES[mode]['name']}"
-        painter.drawText(int(pos[0] - metrics.width(text) / 2), int(pos[1] + 40 * self.width() / 1000 + 30), text)
+        painter.drawText(int(pos[0] - metrics.width(text) / 2), int(pos[1] + 40 * self.width() / 1000 + 15), text)
+        text = f"{'←' if wind<0 else ''} {abs(wind)} {'→' if wind>0 else ''}"
+        painter.drawText(int(self.width() / 2 - metrics.width(text) / 2), 150, text)
 
 
 def onKeyboardPress(key):
-    global wind, mode
+    global wind, mode, altPressed
     try:
         if key.vk in range(96, 106):  # 小键盘的数字键 0-9 的键码是 96~105
             num = key.vk - 96
@@ -125,11 +138,21 @@ def onKeyboardPress(key):
                 wind = sign(wind) * (abs(wind) * 10 % 100) + (1 if wind >= 0 else -1) * num
         elif key.vk == 109:  # 小键盘的减号键
             wind = -wind
-        if key.char.isdigit():  # 大键盘的数字键
+        elif key.vk in range(48, 57):  # 大键盘的数字键
             if int(key.char) <= len(MODES):
                 mode = int(key.char) - 1
     except AttributeError:
-        pass
+        if key.name == "alt_l":
+            altPressed = True
+
+
+def onKeyboardRelease(key):
+    global wind, mode, altPressed
+    try:
+        key.vk
+    except AttributeError:
+        if key.name == "alt_l":
+            altPressed = False
 
 
 def onMouseClick(x, y, button, pressed):
@@ -147,7 +170,7 @@ def onMouseClick(x, y, button, pressed):
             leftButtonPos = (window.mapFromGlobal(posCursor).x(), window.mapFromGlobal(posCursor).y())
 
 
-listenerKeyboard = keyboard.Listener(on_press=onKeyboardPress)
+listenerKeyboard = keyboard.Listener(on_press=onKeyboardPress, on_release=onKeyboardRelease)
 listenerKeyboard.start()
 listenerMouse = mouse.Listener(on_click=onMouseClick)
 listenerMouse.start()
