@@ -170,9 +170,17 @@ def onMouseClick(x, y, button, pressed):
             leftButtonPos = (window.mapFromGlobal(posCursor).x(), window.mapFromGlobal(posCursor).y())
 
 
+def onMouseScroll(x, y, dx, dy):
+    global leftButtonPos, leftButtonPressed, wind
+    posCursor = QCursor.pos()
+    window = QApplication.topLevelWidgets()[0]
+    if window.geometry().contains(posCursor):
+        wind -= sign(dy)
+
+
 listenerKeyboard = keyboard.Listener(on_press=onKeyboardPress, on_release=onKeyboardRelease)
 listenerKeyboard.start()
-listenerMouse = mouse.Listener(on_click=onMouseClick)
+listenerMouse = mouse.Listener(on_click=onMouseClick,on_scroll=onMouseScroll)
 listenerMouse.start()
 
 if __name__ == "__main__":

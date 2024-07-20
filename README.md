@@ -11,7 +11,7 @@ Tracer is a tool for predicting and displaying the trajectories of bullets in th
 0. 工具的窗口会自动对齐到游戏窗口。The tool window will automatically align with the game window.
 1. 鼠标右键点击自己所在的位置。Right-click to mark your position.
 2. 鼠标左键拖动调整力量和角度。Left-click and drag to adjust power and angle.
-3. 按住Left Alt后鼠标左键拖动调整风力的大小和方向(或使用小键盘数字键和减号键直接进行设置)。Left-click and drag while Holding Left Alt key to adjust the size and direction of the wind (or use the numeric keypad numbers and minus key to set it directly).
+3. 按住Left Alt后鼠标左键拖动调整风力的大小和方向(或使用小键盘数字键和减号键直接进行设置)(或使用鼠标滚轮)。Left-click and drag while Holding Left Alt key to adjust the size and direction of the wind (or use the numeric keypad numbers and minus key to set it directly)(or use mouse wheel).
 4. 大键盘数字键设置不同的绘制模式。Use the main keyboard numeric keys to set different drawing modes.
 
 ## 绘制模式 (Drawing Modes)
