@@ -21,6 +21,7 @@ Tracer is a tool for predicting and displaying the trajectories of bullets in th
 
 The tool has the following predefined modes:
 
+-   **Boomerang Mode**
 -   **Gravies Mode**
 -   **Half Gravity Mode**
 -   **Hover+Battering Ram Mode**

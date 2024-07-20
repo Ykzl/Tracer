@@ -4,6 +4,15 @@ MODES = []
 
 MODES.append(
     {
+        "name": "Boomerang",
+        "trails": [
+            {"color": QPen(QColor(192, 192, 192, 255), 2), "boomerang": True},
+        ],
+    }
+)
+
+MODES.append(
+    {
         "name": "Gravies",
         "trails": [
             {"gravityMulti": 1.375, "color": QPen(QColor(255, 255, 255, 255), 2)},

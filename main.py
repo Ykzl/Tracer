@@ -41,7 +41,7 @@ class MyWindow(QWidget):
 
         if leftButtonPressed:
             mousePos = self.mapFromGlobal(QCursor.pos())
-            if self.rect().contains(mousePos) and mousePos.x() != leftButtonPos[0] and mousePos.y() != leftButtonPos[1]:
+            if mousePos.x() != leftButtonPos[0] and mousePos.y() != leftButtonPos[1]:
                 vecX, vecY = mousePos.x() - pos[0], mousePos.y() - pos[1]
                 self.power = min(100, round(100 * math.sqrt(vecX**2 + vecY**2) / (174 * self.width() / 1000)))
                 self.angle = round(-math.degrees(math.atan2(vecY, vecX)))
@@ -57,7 +57,7 @@ class MyWindow(QWidget):
         except IndexError:
             return (self.x(), self.y(), self.width(), self.height())
 
-    def drawTrail(self, painter, powerMulti=1, angleOffset=0, gravityMulti=1, hover=0, color=QPen(Qt.red, 2), dashed=False):
+    def drawTrail(self, painter, powerMulti=1, angleOffset=0, gravityMulti=1, hover=0, color=QPen(Qt.red, 2), dashed=False, boomerang=False):
         power = self.power * powerMulti
         angle = self.angle + angleOffset
         gravity = GRAVITY * gravityMulti * self.width() / 1000
@@ -67,7 +67,7 @@ class MyWindow(QWidget):
         points = [QPoint(x, y)]
         vx = initialVelocity * math.cos(math.radians(angle))
         vy = -initialVelocity * math.sin(math.radians(angle))
-        windEffect = 0.0001 * wind * self.width() / 1000
+        windEffect = 0.0001 * (wind - 36.5 * boomerang * vx) * self.width() / 1000
 
         for _ in range(430):
             x += vx
@@ -144,8 +144,7 @@ def onMouseClick(x, y, button, pressed):
         if pressed:
             posCursor = QCursor.pos()
             window = QApplication.topLevelWidgets()[0]
-            if window.geometry().contains(posCursor):
-                leftButtonPos = (window.mapFromGlobal(posCursor).x(), window.mapFromGlobal(posCursor).y())
+            leftButtonPos = (window.mapFromGlobal(posCursor).x(), window.mapFromGlobal(posCursor).y())
 
 
 listenerKeyboard = keyboard.Listener(on_press=onKeyboardPress)
